@@ -4,6 +4,7 @@
         Module containing all event signals used by the application.
 """
 
+import logging
 import sys
 
 from enum import Enum
@@ -19,5 +20,6 @@ class Signal(Enum):
 
 
 if __name__ == "__main__":
-    print("Error: Execute 'surveillance_frame.py' instead.", file=sys.stderr)
+    logging.basicConfig(format="%(levelname)s: %(message)s")
+    logging.critical("This module cannot be executed.")
     sys.exit(-1)

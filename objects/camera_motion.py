@@ -4,6 +4,7 @@
         Module responsible for handling incoming camera motion HTTP requests.
 """
 
+import logging
 import socketserver
 import sys
 
@@ -12,6 +13,9 @@ from http.server import BaseHTTPRequestHandler
 from events.event import Event
 from events.signals import Signal
 from objects.threaded_object import ThreadedObject
+
+# Define the logger
+LOG = logging.getLogger(__name__)
 
 
 class CameraMotion(ThreadedObject):
@@ -45,13 +49,13 @@ class CameraMotion(ThreadedObject):
             http_response = 200
 
             if self.path == "/?Message=start":
-                print(f"Motion triggered by {self.client_address[0]}")
+                LOG.info("Client %s indicated motion start.", self.client_address[0])
                 self.server.communication_queue.put(Event(Signal.CAMERA_MOTION_START))
             elif self.path == "/?Message=stop":
-                print(f"Motion end triggered by {self.client_address[0]}")
+                LOG.info("Client %s indicated motion end.", self.client_address[0])
                 self.server.communication_queue.put(Event(Signal.CAMERA_MOTION_END))
             else:
-                print(f"Unknown request received from {self.client_address[0]}: {self.path}")
+                LOG.warning("Client %s sent unknown request: %s", self.client_address[0], self.path)
                 http_response = 400
 
             self.send_response(http_response)
@@ -73,9 +77,9 @@ class CameraMotion(ThreadedObject):
         self.__httpd = socketserver.TCPServer((self.__bind_ip, self.__bind_port), CameraMotion.RequestHandler)
         self.__httpd.communication_queue = self.__communication_queue
 
-        print(f"Starting HTTP server on {self.__bind_ip}:{self.__bind_port}.")
+        LOG.info("Starting HTTP server on %s:%d.", self.__bind_ip, self.__bind_port)
         self.__httpd.serve_forever()
-        print("HTTP server has stopped.")
+        LOG.info("HTTP server has stopped.")
 
     def dispatch(self, event):
         """
@@ -90,5 +94,6 @@ class CameraMotion(ThreadedObject):
 
 
 if __name__ == "__main__":
-    print("Error: Execute 'surveillance_frame.py' instead.", file=sys.stderr)
+    logging.basicConfig(format="%(levelname)s: %(message)s")
+    logging.critical("This module cannot be executed.")
     sys.exit(-1)

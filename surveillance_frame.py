@@ -4,13 +4,13 @@
         Surveillance Frame main module.
 
         TODO:
-        - Integrate logging
         - Switch off HDMI when unused
         - Add motion sensor support
         - Add push button support
 """
 
 import argparse
+import logging
 import re
 import sys
 
@@ -23,6 +23,9 @@ from objects.camera_motion import CameraMotion
 from objects.event_dispatcher import EventDispatcher
 from objects.slideshow import Slideshow
 from objects.threaded_object_supervisor import ThreadedObjectSupervisor
+
+# Define the logger
+LOG = logging.getLogger(__file__.split('.')[0])
 
 
 def main():
@@ -43,7 +46,17 @@ def main():
                         help="path to the directory containing pictures to be shown when the camera is inactive")
     parser.add_argument("-s", "--stream-url", metavar="URL", action="store", required=True,
                         help="camera stream URL to be shown when motion is triggered")
+    parser.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
     arguments = parser.parse_args()
+
+    # Configure logging
+    if arguments.verbose:
+        log_format = "%(asctime)s [%(levelname)s] <%(name)s> %(message)s"
+        log_level = logging.DEBUG
+    else:
+        log_format = "%(asctime)s [%(levelname)s] %(message)s"
+        log_level = logging.INFO
+    logging.basicConfig(format=log_format, level=log_level)
 
     # Validate command line arguments
     bind_ip = "0.0.0.0"
@@ -53,7 +66,7 @@ def main():
             bind_ip = result.group(1)
         bind_port = int(result.group(2))
     else:
-        print("Error: Invalid IP/port specified.", file=sys.stderr)
+        LOG.critical("Invalid IP/port specified.")
         sys.exit(-1)
 
     # Start the application
@@ -85,7 +98,7 @@ def main():
         threaded_object_supervisor = ThreadedObjectSupervisor(threaded_objects).start()
         threaded_object_supervisor.join()
     except KeyboardInterrupt:
-        print("Shutting down...")
+        LOG.info("Received keyboard interrupt, shutting down...")
     finally:
         if threaded_object_supervisor:
             threaded_object_supervisor.dispatch(Event(Signal.TERMINATE))

@@ -4,11 +4,15 @@
         Module responsible for showing the picture slideshow.
 """
 
+import logging
 import subprocess
 import sys
 import time
 
 from objects.threaded_object import ThreadedObject
+
+# Define the logger
+LOG = logging.getLogger(__name__)
 
 
 class Slideshow(ThreadedObject):
@@ -43,8 +47,8 @@ class Slideshow(ThreadedObject):
 
         process = subprocess.Popen(slideshow_call, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    universal_newlines=True)
-        print(f"Slideshow has started in directory '{self.__picture_dir}' with an interval of "
-              f"{self.__slideshow_interval} seconds.")
+        LOG.info("Slideshow has started in directory %s with an interval of %d seconds.",
+                 self.__picture_dir, self.__slideshow_interval)
         while self.shall_run() and not process.poll():
             time.sleep(1)
 
@@ -52,9 +56,10 @@ class Slideshow(ThreadedObject):
             _, stderr = process.communicate()
             print(stderr, file=sys.stderr)
 
-        print("Slideshow has stopped.")
+        LOG.info("Slideshow has stopped.")
 
 
 if __name__ == "__main__":
-    print("Error: Execute 'surveillance_frame.py' instead.", file=sys.stderr)
+    logging.basicConfig(format="%(levelname)s: %(message)s")
+    logging.critical("This module cannot be executed.")
     sys.exit(-1)

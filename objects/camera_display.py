@@ -4,12 +4,16 @@
         Module responsible for displaying the surveillance camera stream.
 """
 
+import logging
 import subprocess
 import sys
 
 import psutil
 
 from events.signals import Signal
+
+# Define the logger
+LOG = logging.getLogger(__name__)
 
 
 class CameraDisplay:
@@ -42,7 +46,7 @@ class CameraDisplay:
 
         self.__process = subprocess.Popen(stream_call, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                           universal_newlines=True)
-        print("Stream has started")
+        LOG.info("Camera stream has started.")
 
     def __stop_stream(self):
         """
@@ -57,6 +61,7 @@ class CameraDisplay:
             child.terminate()
         _, alive = psutil.wait_procs(children, timeout=3)
         for child in alive:
+            LOG.warning("Child process was stopped forcefully.")
             child.kill()
 
         # Terminate parent process
@@ -64,7 +69,10 @@ class CameraDisplay:
         try:
             parent.wait(3)
         except psutil.TimeoutExpired:
+            LOG.warning("Parent process was stopped forcefully.")
             parent.kill()
+
+        LOG.info("Camera stream has stopped.")
 
     def dispatch(self, event):
         """
@@ -84,5 +92,6 @@ class CameraDisplay:
 
 
 if __name__ == "__main__":
-    print("Error: Execute 'surveillance_frame.py' instead.", file=sys.stderr)
+    logging.basicConfig(format="%(levelname)s: %(message)s")
+    logging.critical("This module cannot be executed.")
     sys.exit(-1)

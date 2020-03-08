@@ -4,6 +4,7 @@
         Module responsible for supervising all threaded objects.
 """
 
+import logging
 import sys
 import time
 
@@ -45,5 +46,6 @@ class ThreadedObjectSupervisor(ThreadedObject):
 
 
 if __name__ == "__main__":
-    print("Error: Execute 'surveillance_frame.py' instead.", file=sys.stderr)
+    logging.basicConfig(format="%(levelname)s: %(message)s")
+    logging.critical("This module cannot be executed.")
     sys.exit(-1)

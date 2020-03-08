@@ -20,6 +20,7 @@ from events.event import Event
 from events.signals import Signal
 from objects.camera_display import CameraDisplay
 from objects.camera_motion import CameraMotion
+from objects.display_power import DisplayPower
 from objects.event_dispatcher import EventDispatcher
 from objects.slideshow import Slideshow
 from objects.threaded_object_supervisor import ThreadedObjectSupervisor
@@ -28,6 +29,7 @@ from objects.threaded_object_supervisor import ThreadedObjectSupervisor
 LOG = logging.getLogger(__file__.split('.')[0])
 
 
+# pylint: disable=too-many-locals
 def main():
     """
     Main entry point.
@@ -42,7 +44,7 @@ def main():
                         help="time in seconds each picture will be shown (default: %(default)s)")
     parser.add_argument("-l", "--listen", metavar="IP:PORT", action="store", default="0.0.0.0:10042",
                         help="address to bind the HTTP motion trigger server to (default: %(default)s)")
-    parser.add_argument("-p", "--picture-dir", metavar="PATH", action="store", required=True,
+    parser.add_argument("-p", "--picture-dir", metavar="PATH", action="store",
                         help="path to the directory containing pictures to be shown when the camera is inactive")
     parser.add_argument("-s", "--stream-url", metavar="URL", action="store", required=True,
                         help="camera stream URL to be shown when motion is triggered")
@@ -76,13 +78,20 @@ def main():
         communication_objects = []
         communication_queue = Queue()
 
+        # Display power
+        display_power_object = DisplayPower(communication_queue, arguments.picture_dir is None)
+        communication_objects.append(display_power_object)
+
         # Slideshow
-        slideshow_object = Slideshow(communication_queue, arguments.picture_dir, arguments.slideshow_interval).start()
-        communication_objects.append(slideshow_object)
-        threaded_objects.append(slideshow_object)
+        if arguments.picture_dir:
+            slideshow_object = Slideshow(communication_queue, arguments.picture_dir,
+                                         arguments.slideshow_interval).start()
+            communication_objects.append(slideshow_object)
+            threaded_objects.append(slideshow_object)
 
         # Camera display
-        camera_display_object = CameraDisplay(communication_queue, arguments.stream_url)
+        camera_display_object = CameraDisplay(communication_queue, arguments.stream_url,
+                                              arguments.picture_dir is not None)
         communication_objects.append(camera_display_object)
 
         # Camera motion

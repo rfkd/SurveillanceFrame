@@ -23,14 +23,20 @@ class CameraDisplay:
     # Process handle
     __process = None
 
-    def __init__(self, communication_queue, stream_url):
+    def __init__(self, communication_queue, stream_url, display_on_camera_motion):
         """
         Class constructor.
         :param communication_queue: Queue used for event communication.
         :param stream_url: URL of the camera stream.
+        :param display_on_camera_motion: Set True to switch to the stream upon camera motion has been detected. Set
+                                         False to show the camera stream permanently.
         """
         self.__communication_queue = communication_queue
         self.__stream_url = stream_url
+        self.__display_on_camera_motion = display_on_camera_motion
+
+        if not display_on_camera_motion:
+            self.__start_stream()
 
     def __start_stream(self):
         """
@@ -80,7 +86,7 @@ class CameraDisplay:
         :param event: Event to be dispatched.
         :return None
         """
-        if event.get_signal() == Signal.CAMERA_MOTION:
+        if self.__display_on_camera_motion and event.get_signal() == Signal.CAMERA_MOTION:
             if event.is_detected():
                 if self.__process is None or self.__process.poll() is not None:
                     self.__start_stream()

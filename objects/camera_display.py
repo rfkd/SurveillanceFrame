@@ -80,15 +80,13 @@ class CameraDisplay:
         :param event: Event to be dispatched.
         :return None
         """
-        if event.get_signal() == Signal.CAMERA_MOTION_START:
-            if self.__process is None or self.__process.poll() is not None:
-                self.__start_stream()
-            return
-
-        if event.get_signal() == Signal.CAMERA_MOTION_END:
-            if self.__process is not None and self.__process.poll() is None:
-                self.__stop_stream()
-            return
+        if event.get_signal() == Signal.CAMERA_MOTION:
+            if event.is_detected():
+                if self.__process is None or self.__process.poll() is not None:
+                    self.__start_stream()
+            else:
+                if self.__process is not None and self.__process.poll() is None:
+                    self.__stop_stream()
 
 
 if __name__ == "__main__":

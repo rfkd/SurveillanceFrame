@@ -45,7 +45,7 @@ class Slideshow(ThreadedObject):
             "--slideshow-delay", f"{self.__slideshow_interval}"
         ]
 
-        process = subprocess.Popen(slideshow_call, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        process = subprocess.Popen(slideshow_call, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
                                    universal_newlines=True)
         LOG.info("Slideshow has started in directory %s with an interval of %d seconds.",
                  self.__picture_dir, self.__slideshow_interval)

@@ -78,14 +78,14 @@ class CameraDisplay:
         """
         Dispatch the given event to the object.
         :param event: Event to be dispatched.
-        :return
+        :return None
         """
-        if event.signal == Signal.CAMERA_MOTION_START:
+        if event.get_signal() == Signal.CAMERA_MOTION_START:
             if self.__process is None or self.__process.poll() is not None:
                 self.__start_stream()
             return
 
-        if event.signal == Signal.CAMERA_MOTION_END:
+        if event.get_signal() == Signal.CAMERA_MOTION_END:
             if self.__process is not None and self.__process.poll() is None:
                 self.__stop_stream()
             return

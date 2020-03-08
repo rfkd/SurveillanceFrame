@@ -73,7 +73,7 @@ class ThreadedObject:
         :param event: Event to be dispatched.
         :return: None
         """
-        if event.signal == Signal.TERMINATE and self.__thread_handle.is_alive():
+        if event.get_signal() == Signal.TERMINATE and self.__thread_handle.is_alive():
             self.__shall_run = False
             self.__thread_handle.join()
 

@@ -87,7 +87,7 @@ class CameraMotion(ThreadedObject):
         :param event: Event to be dispatched.
         :return
         """
-        if event.signal == Signal.TERMINATE and self.is_running() and self.__httpd:
+        if event.get_signal() == Signal.TERMINATE and self.is_running() and self.__httpd:
             self.__httpd.shutdown()
             self.__httpd.server_close()
         super().dispatch(event)

@@ -17,14 +17,21 @@ class Event:
         Class constructor.
         :param signal: Signal used by this event.
         """
-        self.signal = signal
+        self.__signal = signal
 
     def __str__(self):
         """
         String representation of this object.
         :return: String representation.
         """
-        return f"Event({self.signal})"
+        return f"Event({self.__signal})"
+
+    def get_signal(self):
+        """
+        Get the signal of the event.
+        :return: Event signal
+        """
+        return self.__signal
 
 
 if __name__ == "__main__":

@@ -17,6 +17,8 @@ class Signal(Enum):
     TERMINATE = 1
     CAMERA_MOTION = 2
     DISPLAY_POWER = 3
+    MOTION_SENSOR = 4
+    BUTTON_PRESS = 5
 
 
 if __name__ == "__main__":

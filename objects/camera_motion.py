@@ -10,7 +10,7 @@ import sys
 
 from http.server import BaseHTTPRequestHandler
 
-from events.event_camera_motion import EventCameraMotion
+from events.event_motion import EventMotion
 from events.signals import Signal
 from objects.threaded_object import ThreadedObject
 
@@ -50,10 +50,10 @@ class CameraMotion(ThreadedObject):
 
             if self.path == "/?Message=start":
                 LOG.info("Client %s indicated motion start.", self.client_address[0])
-                self.server.communication_queue.put(EventCameraMotion(True))
+                self.server.communication_queue.put(EventMotion(Signal.CAMERA_MOTION, True))
             elif self.path == "/?Message=stop":
                 LOG.info("Client %s indicated motion end.", self.client_address[0])
-                self.server.communication_queue.put(EventCameraMotion(False))
+                self.server.communication_queue.put(EventMotion(Signal.CAMERA_MOTION, False))
             else:
                 LOG.warning("Client %s sent unknown request: %s", self.client_address[0], self.path)
                 http_response = 400

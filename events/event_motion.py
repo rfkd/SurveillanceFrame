@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 
 """
-        Module containing the camera motion event.
+        Module containing the motion event.
 """
 
 import logging
 import sys
 
 from events.event import Event
-from events.signals import Signal
 
 
-class EventCameraMotion(Event):
+class EventMotion(Event):
     """
-    Event to handle the camera motion detection.
+    Event to indicate motion.
     """
-    def __init__(self, is_detected):
+    def __init__(self, signal, is_detected):
         """
         Class constructor.
+        :param signal: Signal of the event.
         :param is_detected: True if motion has been detected, False otherwise.
         """
         self.__is_detected = is_detected
-        super().__init__(Signal.CAMERA_MOTION)
+        super().__init__(signal)
 
     def is_detected(self):
         """

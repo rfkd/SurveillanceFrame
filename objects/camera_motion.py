@@ -8,8 +8,10 @@ import logging
 import socketserver
 import sys
 
+from queue import Queue
 from http.server import BaseHTTPRequestHandler
 
+from events.event import Event
 from events.event_motion import EventMotion
 from events.signals import Signal
 from objects.threaded_object import ThreadedObject
@@ -25,7 +27,7 @@ class CameraMotion(ThreadedObject):
     # HTTP server handle.
     __httpd = None
 
-    def __init__(self, communication_queue, bind_ip, bind_port):
+    def __init__(self, communication_queue: Queue, bind_ip: str, bind_port: int):
         """
         Class constructor.
         :param communication_queue: Queue used for event communication.
@@ -41,7 +43,7 @@ class CameraMotion(ThreadedObject):
         """
         HTTP request handler class.
         """
-        def do_GET(self):   # pylint: disable=invalid-name
+        def do_GET(self) -> None:   # pylint: disable=invalid-name
             """
             Handle GET requests.
             :return: None
@@ -61,13 +63,13 @@ class CameraMotion(ThreadedObject):
             self.send_response(http_response)
             self.end_headers()
 
-        def log_message(self, _, *args):
+        def log_message(self, _, *args: str) -> None:
             """
             Disable logging.
             """
             return
 
-    def __start_httpd(self):
+    def __start_httpd(self) -> None:
         """
         Start the HTTP server.
         :return: None
@@ -81,11 +83,11 @@ class CameraMotion(ThreadedObject):
         self.__httpd.serve_forever()
         LOG.info("HTTP server has stopped.")
 
-    def dispatch(self, event):
+    def dispatch(self, event: Event) -> None:
         """
         Dispatch the given event to the object.
         :param event: Event to be dispatched.
-        :return
+        :return None
         """
         if event.get_signal() == Signal.TERMINATE and self.is_running() and self.__httpd:
             self.__httpd.shutdown()

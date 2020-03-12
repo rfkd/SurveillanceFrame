@@ -8,6 +8,8 @@ import logging
 import sys
 import time
 
+from typing import List
+
 from events.event import Event
 from events.signals import Signal
 from objects.threaded_object import ThreadedObject
@@ -17,7 +19,7 @@ class ThreadedObjectSupervisor(ThreadedObject):
     """
     Class supervising other threaded objects.
     """
-    def __init__(self, threaded_objects):
+    def __init__(self, threaded_objects: List[ThreadedObject]):
         """
         Class constructor.
         :param threaded_objects: List of threaded objects to be supervised.
@@ -25,7 +27,7 @@ class ThreadedObjectSupervisor(ThreadedObject):
         self.__threaded_objects = threaded_objects
         super().__init__(self.__supervise_threaded_objects)
 
-    def __supervise_threaded_objects(self):
+    def __supervise_threaded_objects(self) -> None:
         """
         Supervise threaded objects. In case one of the supervised threads stops all other objects will be stopped as
         well.

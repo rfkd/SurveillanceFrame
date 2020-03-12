@@ -15,7 +15,7 @@ class EventDisplayPower(Event):
     """
     Event to control the display power.
     """
-    def __init__(self, shall_power_on):
+    def __init__(self, shall_power_on: bool):
         """
         Class constructor.
         :param shall_power_on: True if the display shall power on, False if it shall power off.
@@ -23,7 +23,7 @@ class EventDisplayPower(Event):
         self.__shall_power_on = shall_power_on
         super().__init__(Signal.DISPLAY_POWER)
 
-    def shall_power_on(self):
+    def shall_power_on(self) -> bool:
         """
         Get the desired display power state.
         :return: True if the display shall power on, False if it shall power off.

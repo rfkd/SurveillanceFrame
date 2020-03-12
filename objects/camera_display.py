@@ -8,8 +8,11 @@ import logging
 import subprocess
 import sys
 
+from queue import Queue
+
 import psutil
 
+from events.event import Event
 from events.signals import Signal
 
 # Define the logger
@@ -23,7 +26,7 @@ class CameraDisplay:
     # Process handle
     __process = None
 
-    def __init__(self, communication_queue, stream_url, display_on_camera_motion):
+    def __init__(self, communication_queue: Queue, stream_url: str, display_on_camera_motion: bool):
         """
         Class constructor.
         :param communication_queue: Queue used for event communication.
@@ -38,7 +41,7 @@ class CameraDisplay:
         if not display_on_camera_motion:
             self.__start_stream()
 
-    def __start_stream(self):
+    def __start_stream(self) -> None:
         """
         Start the camera stream.
         :return: None
@@ -54,7 +57,7 @@ class CameraDisplay:
                                           universal_newlines=True)
         LOG.info("Camera stream has started.")
 
-    def __stop_stream(self):
+    def __stop_stream(self) -> None:
         """
         Stop the camera stream.
         :return: None
@@ -80,7 +83,7 @@ class CameraDisplay:
 
         LOG.info("Camera stream has stopped.")
 
-    def dispatch(self, event):
+    def dispatch(self, event: Event) -> None:
         """
         Dispatch the given event to the object.
         :param event: Event to be dispatched.

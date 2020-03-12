@@ -15,6 +15,7 @@ import re
 import sys
 
 from queue import Queue
+from typing import Tuple
 
 import RPi.GPIO as GPIO     # pylint: disable=import-error
 
@@ -33,7 +34,7 @@ from objects.threaded_object_supervisor import ThreadedObjectSupervisor
 LOG = logging.getLogger(__file__.split('.')[0])
 
 
-def parse_arguments():
+def parse_arguments() -> argparse.Namespace:
     """
     Parse the command line arguments.
     :return: Parsed command line arguments.
@@ -58,7 +59,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def configure_logging(arguments):
+def configure_logging(arguments: argparse.Namespace) -> None:
     """
     Configure logging.
     :param arguments: Parsed command line arguments.
@@ -73,7 +74,7 @@ def configure_logging(arguments):
     logging.basicConfig(format=log_format, level=log_level)
 
 
-def get_listen(listen):
+def get_listen(listen: str) -> Tuple[str, int]:
     """
     Get the parsed --listen command line argument.
     :param listen: Value of the --listen command line argument.
@@ -93,7 +94,7 @@ def get_listen(listen):
     return bind_ip, bind_port
 
 
-def main():
+def main() -> None:
     """
     Main entry point.
     :return: None
@@ -114,34 +115,32 @@ def main():
         communication_queue = Queue()
 
         # Display power
-        display_power_object = DisplayPower(communication_queue, arguments.picture_dir is None)
-        communication_objects.append(display_power_object)
+        display_power = DisplayPower(communication_queue, arguments.picture_dir is None)
+        communication_objects.append(display_power)
 
         # Slideshow
         if arguments.picture_dir:
-            slideshow_object = Slideshow(communication_queue, arguments.picture_dir,
-                                         arguments.slideshow_interval).start()
-            communication_objects.append(slideshow_object)
-            threaded_objects.append(slideshow_object)
+            slideshow = Slideshow(communication_queue, arguments.picture_dir, int(arguments.slideshow_interval)).start()
+            communication_objects.append(slideshow)
+            threaded_objects.append(slideshow)
 
         # Camera display
-        camera_display_object = CameraDisplay(communication_queue, arguments.stream_url,
-                                              arguments.picture_dir is not None)
-        communication_objects.append(camera_display_object)
+        camera_display = CameraDisplay(communication_queue, arguments.stream_url, arguments.picture_dir is not None)
+        communication_objects.append(camera_display)
 
         # Camera motion
-        camera_motion_object = CameraMotion(communication_queue, bind_ip, bind_port).start()
-        communication_objects.append(camera_motion_object)
-        threaded_objects.append(camera_motion_object)
+        camera_motion = CameraMotion(communication_queue, bind_ip, bind_port).start()
+        communication_objects.append(camera_motion)
+        threaded_objects.append(camera_motion)
 
         # Motion sensor
         if arguments.motion_gpio:
-            motion_sensor = MotionSensor(communication_queue, arguments.motion_gpio)
+            motion_sensor = MotionSensor(communication_queue, int(arguments.motion_gpio))
             communication_objects.append(motion_sensor)
 
         # Button
         if arguments.button_gpio:
-            button = Button(communication_queue, arguments.button_gpio)
+            button = Button(communication_queue, int(arguments.button_gpio))
             communication_objects.append(button)
 
         # Event dispatcher

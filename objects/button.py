@@ -8,6 +8,7 @@ import logging
 import sys
 
 from datetime import datetime
+from queue import Queue
 
 import RPi.GPIO as GPIO     # pylint: disable=import-error
 
@@ -28,20 +29,20 @@ class Button(PassiveObject):
     # Timestamp when the button has been pressed.
     __button_press_timestamp = None
 
-    def __init__(self, communication_queue, gpio_channel):
+    def __init__(self, communication_queue: Queue, gpio_channel: int):
         """
         Class constructor.
         :param communication_queue: Queue used for event communication.
         :param gpio_channel: GPIO BOARD channel number the button is connected to.
         """
         self.__communication_queue = communication_queue
-        self.__gpio_channel = int(gpio_channel)
+        self.__gpio_channel = gpio_channel
 
         GPIO.setup(self.__gpio_channel, GPIO.IN, pull_up_down=GPIO.PUD_OFF)
         GPIO.add_event_detect(self.__gpio_channel, GPIO.BOTH, callback=self.__button_state_change)
         LOG.info("Button initialized at GPIO %d.", self.__gpio_channel)
 
-    def __button_state_change(self, gpio_channel):
+    def __button_state_change(self, gpio_channel: int) -> None:
         """
         Callback called when a button state has changed.
         :param gpio_channel: GPIO BOARD channel number which triggered the button state change.

@@ -7,26 +7,28 @@
 import logging
 import sys
 
+from events.signals import Signal
+
 
 class Event:
     """
     Base class for all events.
     """
-    def __init__(self, signal):
+    def __init__(self, signal: Signal):
         """
         Class constructor.
         :param signal: Signal used by this event.
         """
         self.__signal = signal
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         String representation of this object.
         :return: String representation.
         """
         return f"Event({self.__signal})"
 
-    def get_signal(self):
+    def get_signal(self) -> Signal:
         """
         Get the signal of the event.
         :return: Event signal

@@ -7,6 +7,8 @@
 import logging
 import sys
 
+from queue import Queue
+
 import RPi.GPIO as GPIO     # pylint: disable=import-error
 
 from events.event_motion import EventMotion
@@ -21,20 +23,20 @@ class MotionSensor(PassiveObject):
     """
     Class handling motion sensor detection.
     """
-    def __init__(self, communication_queue, gpio_channel):
+    def __init__(self, communication_queue: Queue, gpio_channel: int):
         """
         Class constructor.
         :param communication_queue: Queue used for event communication.
         :param gpio_channel: GPIO BOARD channel number the motion sensor is connected to.
         """
         self.__communication_queue = communication_queue
-        self.__gpio_channel = int(gpio_channel)
+        self.__gpio_channel = gpio_channel
 
         GPIO.setup(self.__gpio_channel, GPIO.IN, pull_up_down=GPIO.PUD_OFF)
         GPIO.add_event_detect(self.__gpio_channel, GPIO.BOTH, callback=self.__motion_detected)
         LOG.info("Motion sensor initialized at GPIO %d.", self.__gpio_channel)
 
-    def __motion_detected(self, gpio_channel):
+    def __motion_detected(self, gpio_channel: int) -> None:
         """
         Callback called when a change in motion has been detected.
         :param gpio_channel: GPIO BOARD channel number which triggered the motion change.

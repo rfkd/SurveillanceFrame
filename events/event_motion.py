@@ -14,7 +14,7 @@ class EventMotion(Event):
     """
     Event to indicate motion.
     """
-    def __init__(self, signal, is_detected):
+    def __init__(self, signal: int, is_detected: bool):
         """
         Class constructor.
         :param signal: Signal of the event.
@@ -23,7 +23,7 @@ class EventMotion(Event):
         self.__is_detected = is_detected
         super().__init__(signal)
 
-    def is_detected(self):
+    def is_detected(self) -> bool:
         """
         Get the motion detection state.
         :return: True if motion has been detected, False otherwise.

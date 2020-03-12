@@ -9,6 +9,8 @@ import subprocess
 import sys
 import time
 
+from queue import Queue
+
 from objects.threaded_object import ThreadedObject
 
 # Define the logger
@@ -19,7 +21,7 @@ class Slideshow(ThreadedObject):
     """
     Class handling the picture slideshow.
     """
-    def __init__(self, communication_queue, picture_dir, slideshow_interval):
+    def __init__(self, communication_queue: Queue, picture_dir: str, slideshow_interval: int):
         """
         Class constructor.
         :param communication_queue: Queue used for event communication.
@@ -31,7 +33,7 @@ class Slideshow(ThreadedObject):
         self.__slideshow_interval = slideshow_interval
         super().__init__(self.__slideshow)
 
-    def __slideshow(self):
+    def __slideshow(self) -> None:
         """
         Start the slideshow.
         :return: None
@@ -47,7 +49,7 @@ class Slideshow(ThreadedObject):
 
         process = subprocess.Popen(slideshow_call, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
                                    universal_newlines=True)
-        LOG.info("Slideshow has started in directory %s with an interval of %s seconds.",
+        LOG.info("Slideshow has started in directory %s with an interval of %d seconds.",
                  self.__picture_dir, self.__slideshow_interval)
         while self.shall_run() and not process.poll():
             time.sleep(1)

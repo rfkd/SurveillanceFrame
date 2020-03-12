@@ -19,7 +19,7 @@ class EventButtonPress(Event):
     SHORT_PRESS = 0
     LONG_PRESS = 1
 
-    def __init__(self, press_type):
+    def __init__(self, press_type: int):
         """
         Class constructor.
         :param press_type: Button press type.
@@ -27,7 +27,7 @@ class EventButtonPress(Event):
         self.__press_type = press_type
         super().__init__(Signal.BUTTON_PRESS)
 
-    def get_press_type(self):
+    def get_press_type(self) -> int:
         """
         Get the button press type.
         :return: Button press type.

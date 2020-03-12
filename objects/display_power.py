@@ -8,6 +8,9 @@ import logging
 import subprocess
 import sys
 
+from queue import Queue
+
+from events.event import Event
 from events.signals import Signal
 
 # Define the logger
@@ -19,7 +22,7 @@ class DisplayPower:
     Class controlling the display power.
     """
 
-    def __init__(self, communication_queue, power_on_camera_motion):
+    def __init__(self, communication_queue: Queue, power_on_camera_motion: bool):
         """
         Class constructor.
         :param communication_queue: Queue used for event communication.
@@ -33,7 +36,7 @@ class DisplayPower:
             self.__power_display(False)
 
     @staticmethod
-    def __power_display(shall_power_on):
+    def __power_display(shall_power_on: bool) -> None:
         """
         Control the display power.
         :param shall_power_on: True if the display shall be powered on, False if it shall be powered off.
@@ -54,7 +57,7 @@ class DisplayPower:
         if stderr:
             LOG.error(stderr)
 
-    def dispatch(self, event):
+    def dispatch(self, event: Event) -> None:
         """
         Dispatch the given event to the object.
         :param event: Event to be dispatched.

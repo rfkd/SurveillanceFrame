@@ -13,10 +13,10 @@ class PassiveObject:
     Base class for all passive (i.e. non-threaded) objects.
     """
     # pylint: disable=no-self-use
-    def dispatch(self, _):
+    def dispatch(self, _) -> None:
         """
         Empty dispatch implementation needed by objects which only produce events but don't consume them.
-        :return:
+        :return: None
         """
         return
 

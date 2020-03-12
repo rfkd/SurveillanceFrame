@@ -8,6 +8,10 @@ import logging
 import sys
 import time
 
+from queue import Queue
+from typing import List
+
+from objects.passive_object import PassiveObject
 from objects.threaded_object import ThreadedObject
 
 
@@ -16,7 +20,7 @@ class EventDispatcher(ThreadedObject):
     Class dispatching events to objects. An event posted to the EventDispatcher queue will be dispatched to all assigned
     objects.
     """
-    def __init__(self, communication_queue, objects):
+    def __init__(self, communication_queue: Queue, objects: List[PassiveObject]):
         """
         Class constructor.
         :param communication_queue: Queue used for event communication.
@@ -26,7 +30,7 @@ class EventDispatcher(ThreadedObject):
         self.__objects = objects
         super().__init__(self.__dispatch_events)
 
-    def __dispatch_events(self):
+    def __dispatch_events(self) -> None:
         """
         Dispatch incoming events to assigned queues.
         :return: None

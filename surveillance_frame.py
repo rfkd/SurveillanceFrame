@@ -2,14 +2,10 @@
 
 """
         Surveillance Frame main module.
-
-        TODO:
-        - Integrate power modes
-        - Add motion sensor actions
-        - Add push button actions
 """
 
 import argparse
+import datetime
 import logging
 import re
 import sys
@@ -27,6 +23,7 @@ from objects.camera_motion import CameraMotion
 from objects.display_power import DisplayPower
 from objects.event_dispatcher import EventDispatcher
 from objects.motion_sensor import MotionSensor
+from objects.power_manager import PowerManager, PowerSchedule
 from objects.slideshow import Slideshow
 from objects.threaded_object_supervisor import ThreadedObjectSupervisor
 
@@ -94,6 +91,7 @@ def get_listen(listen: str) -> Tuple[str, int]:
     return bind_ip, bind_port
 
 
+# pylint: disable=too-many-locals
 def main() -> None:
     """
     Main entry point.
@@ -142,6 +140,20 @@ def main() -> None:
         if arguments.button_gpio:
             button = Button(communication_queue, int(arguments.button_gpio))
             communication_objects.append(button)
+
+        # Power manager
+        ## TODO Add command line argument
+        now = datetime.datetime.now()
+        schedules = [
+            PowerSchedule(now.weekday(), datetime.time(now.hour-1, 0), datetime.time(now.hour, now.minute),
+                          PowerManager.Behavior.ALWAYS_ON),
+            PowerSchedule(now.weekday(), datetime.time(now.hour, now.minute+1), datetime.time(now.hour+1, 0),
+                          PowerManager.Behavior.CAMERA_MOTION)
+        ]
+        ##
+        power_manager = PowerManager(communication_queue, schedules).start()
+        communication_objects.append(power_manager)
+        threaded_objects.append(power_manager)
 
         # Event dispatcher
         event_dispatcher = EventDispatcher(communication_queue, communication_objects).start()

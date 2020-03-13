@@ -28,7 +28,7 @@ class Event:
         """
         return f"Event({self.__signal})"
 
-    def get_signal(self) -> Signal:
+    def signal(self) -> Signal:
         """
         Get the signal of the event.
         :return: Event signal

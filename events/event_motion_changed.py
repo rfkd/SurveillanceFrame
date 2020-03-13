@@ -1,34 +1,35 @@
 #!/usr/bin/env python3
 
 """
-        Module containing the motion event.
+        Module containing the MotionChanged event.
 """
 
 import logging
 import sys
 
 from events.event import Event
+from events.signals import Signal
 
 
-class EventMotion(Event):
+class EventMotionChanged(Event):
     """
     Event to indicate motion.
     """
-    def __init__(self, signal: int, is_detected: bool):
+    def __init__(self, signal: Signal, motion: bool):
         """
         Class constructor.
         :param signal: Signal of the event.
-        :param is_detected: True if motion has been detected, False otherwise.
+        :param motion: True if motion is active, False otherwise.
         """
-        self.__is_detected = is_detected
+        self.__motion = motion
         super().__init__(signal)
 
-    def is_detected(self) -> bool:
+    def motion(self) -> bool:
         """
-        Get the motion detection state.
-        :return: True if motion has been detected, False otherwise.
+        Get the motion state.
+        :return: True if motion is active, False otherwise.
         """
-        return self.__is_detected
+        return self.__motion
 
 
 if __name__ == "__main__":

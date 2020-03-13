@@ -18,7 +18,7 @@ import RPi.GPIO as GPIO     # pylint: disable=import-error
 from events.event import Event
 from events.signals import Signal
 from objects.button import Button
-from objects.camera_display import CameraDisplay
+from objects.camera_stream import CameraStream
 from objects.camera_motion import CameraMotion
 from objects.display_power import DisplayPower
 from objects.event_dispatcher import EventDispatcher
@@ -113,18 +113,17 @@ def main() -> None:
         communication_queue = Queue()
 
         # Display power
-        display_power = DisplayPower(communication_queue, arguments.picture_dir is None)
+        display_power = DisplayPower(communication_queue)
         communication_objects.append(display_power)
 
         # Slideshow
         if arguments.picture_dir:
-            slideshow = Slideshow(communication_queue, arguments.picture_dir, int(arguments.slideshow_interval)).start()
+            slideshow = Slideshow(communication_queue, arguments.picture_dir, int(arguments.slideshow_interval))
             communication_objects.append(slideshow)
-            threaded_objects.append(slideshow)
 
-        # Camera display
-        camera_display = CameraDisplay(communication_queue, arguments.stream_url, arguments.picture_dir is not None)
-        communication_objects.append(camera_display)
+        # Camera stream
+        camera_stream = CameraStream(communication_queue, arguments.stream_url)
+        communication_objects.append(camera_stream)
 
         # Camera motion
         camera_motion = CameraMotion(communication_queue, bind_ip, bind_port).start()
@@ -146,10 +145,11 @@ def main() -> None:
         now = datetime.datetime.now()
         schedules = [
             PowerSchedule(now.weekday(), datetime.time(now.hour-1, 0), datetime.time(now.hour, now.minute),
-                          PowerManager.Behavior.ALWAYS_ON),
+                          PowerManager.Mode.ALWAYS_ON),
             PowerSchedule(now.weekday(), datetime.time(now.hour, now.minute+1), datetime.time(now.hour+1, 0),
-                          PowerManager.Behavior.CAMERA_MOTION)
+                          PowerManager.Mode.CAMERA_MOTION)
         ]
+        schedules = None
         ##
         power_manager = PowerManager(communication_queue, schedules).start()
         communication_objects.append(power_manager)

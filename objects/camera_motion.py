@@ -12,7 +12,7 @@ from queue import Queue
 from http.server import BaseHTTPRequestHandler
 
 from events.event import Event
-from events.event_motion import EventMotion
+from events.event_motion_changed import EventMotionChanged
 from events.signals import Signal
 from objects.threaded_object import ThreadedObject
 
@@ -52,10 +52,10 @@ class CameraMotion(ThreadedObject):
 
             if self.path == "/?Message=start":
                 LOG.info("Client %s indicated motion start.", self.client_address[0])
-                self.server.communication_queue.put(EventMotion(Signal.CAMERA_MOTION, True))
+                self.server.communication_queue.put(EventMotionChanged(Signal.CAMERA_MOTION_CHANGED, True))
             elif self.path == "/?Message=stop":
                 LOG.info("Client %s indicated motion end.", self.client_address[0])
-                self.server.communication_queue.put(EventMotion(Signal.CAMERA_MOTION, False))
+                self.server.communication_queue.put(EventMotionChanged(Signal.CAMERA_MOTION_CHANGED, False))
             else:
                 LOG.warning("Client %s sent unknown request: %s", self.client_address[0], self.path)
                 http_response = 400
@@ -89,7 +89,7 @@ class CameraMotion(ThreadedObject):
         :param event: Event to be dispatched.
         :return None
         """
-        if event.get_signal() == Signal.TERMINATE and self.is_running() and self.__httpd:
+        if event.signal() == Signal.TERMINATE and self.is_running() and self.__httpd:
             self.__httpd.shutdown()
             self.__httpd.server_close()
         super().dispatch(event)

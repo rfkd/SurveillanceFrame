@@ -12,7 +12,7 @@ from queue import Queue
 
 import RPi.GPIO as GPIO     # pylint: disable=import-error
 
-from events.event_button_press import EventButtonPress
+from events.event_button_pressed import EventButtonPressed
 from objects.passive_object import PassiveObject
 
 # Define the logger
@@ -23,6 +23,10 @@ class Button(PassiveObject):
     """
     Class handling a push button.
     """
+    # Press types
+    SHORT_PRESS = 1
+    LONG_PRESS = 2
+
     # Minimum number of seconds the button has to be pressed for a long press.
     __LONG_PRESS_THRESHOLD = 1.5
 
@@ -42,6 +46,8 @@ class Button(PassiveObject):
         GPIO.add_event_detect(self.__gpio_channel, GPIO.BOTH, callback=self.__button_state_change)
         LOG.info("Button initialized at GPIO %d.", self.__gpio_channel)
 
+        super().__init__()
+
     def __button_state_change(self, gpio_channel: int) -> None:
         """
         Callback called when a button state has changed.
@@ -58,10 +64,10 @@ class Button(PassiveObject):
             button_press_time = button_press_time.seconds + button_press_time.microseconds / 1000000
             if button_press_time >= self.__LONG_PRESS_THRESHOLD:
                 LOG.info("Long push button press detected.")
-                self.__communication_queue.put(EventButtonPress(EventButtonPress.LONG_PRESS))
+                self.__communication_queue.put(EventButtonPressed(self.LONG_PRESS))
             else:
                 LOG.info("Short push button press detected.")
-                self.__communication_queue.put(EventButtonPress(EventButtonPress.SHORT_PRESS))
+                self.__communication_queue.put(EventButtonPressed(self.SHORT_PRESS))
 
 
 if __name__ == "__main__":

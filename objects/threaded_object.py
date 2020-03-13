@@ -33,6 +33,7 @@ class ThreadedObject(PassiveObject):
         :param thread_function: Thread function.
         """
         self.__thread_function = thread_function
+        super().__init__()
 
     def start(self) -> ThreadedObject:
         """
@@ -78,9 +79,11 @@ class ThreadedObject(PassiveObject):
         :param event: Event to be dispatched.
         :return: None
         """
-        if event.get_signal() == Signal.TERMINATE and self.__thread_handle.is_alive():
+        if event.signal() == Signal.TERMINATE and self.__thread_handle.is_alive():
             self.__shall_run = False
             self.__thread_handle.join()
+        else:
+            super().dispatch(event)
 
 
 if __name__ == "__main__":

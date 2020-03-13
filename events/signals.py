@@ -15,10 +15,12 @@ class Signal(Enum):
     Class encapsulating all signals used in the application.
     """
     TERMINATE = 1
-    CAMERA_MOTION = 2
-    DISPLAY_POWER = 3
-    MOTION_SENSOR = 4
-    BUTTON_PRESS = 5
+    BUTTON_PRESSED = 2
+    CAMERA_MOTION_CHANGED = 3
+    SENSOR_MOTION_CHANGED = 4
+    CAMERA_STREAM_CONTROL = 5
+    DISPLAY_POWER_CONTROL = 6
+    SLIDESHOW_CONTROL = 7
 
 
 if __name__ == "__main__":

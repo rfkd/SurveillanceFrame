@@ -11,7 +11,7 @@ from queue import Queue
 
 import RPi.GPIO as GPIO     # pylint: disable=import-error
 
-from events.event_motion import EventMotion
+from events.event_motion_changed import EventMotionChanged
 from events.signals import Signal
 from objects.passive_object import PassiveObject
 
@@ -36,6 +36,8 @@ class MotionSensor(PassiveObject):
         GPIO.add_event_detect(self.__gpio_channel, GPIO.BOTH, callback=self.__motion_detected)
         LOG.info("Motion sensor initialized at GPIO %d.", self.__gpio_channel)
 
+        super().__init__()
+
     def __motion_detected(self, gpio_channel: int) -> None:
         """
         Callback called when a change in motion has been detected.
@@ -46,10 +48,10 @@ class MotionSensor(PassiveObject):
 
         if GPIO.input(self.__gpio_channel) == GPIO.HIGH:
             LOG.info("Motion has been detected.")
-            self.__communication_queue.put(EventMotion(Signal.MOTION_SENSOR, True))
+            self.__communication_queue.put(EventMotionChanged(Signal.SENSOR_MOTION_CHANGED, True))
         else:
             LOG.info("Motion has ended.")
-            self.__communication_queue.put(EventMotion(Signal.MOTION_SENSOR, False))
+            self.__communication_queue.put(EventMotionChanged(Signal.SENSOR_MOTION_CHANGED, False))
 
 
 if __name__ == "__main__":

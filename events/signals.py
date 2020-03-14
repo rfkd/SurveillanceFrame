@@ -21,6 +21,7 @@ class Signal(Enum):
     CAMERA_STREAM_CONTROL = 5
     DISPLAY_POWER_CONTROL = 6
     SLIDESHOW_CONTROL = 7
+    NOTIFY = 8
 
 
 if __name__ == "__main__":

@@ -50,6 +50,7 @@ class CameraMotion(ThreadedObject):
             """
             http_response = 200
 
+            # Simulation example: curl -X GET http://localhost:10042/?Message=start
             if self.path == "/?Message=start":
                 LOG.info("Client %s indicated motion start.", self.client_address[0])
                 self.server.communication_queue.put(EventMotionChanged(Signal.CAMERA_MOTION_CHANGED, True))

@@ -16,6 +16,7 @@ from events.event import Event
 from events.event_button_pressed import EventButtonPressed
 from events.event_control import EventControl
 from events.event_motion_changed import EventMotionChanged
+from events.event_notify import EventNotify
 from events.signals import Signal
 from miscellaneous.timer import Timer
 from objects.button import Button
@@ -188,6 +189,7 @@ class PowerManager(ThreadedObject):
             if self.__in_camera_motion:
                 self.__control_camera_stream(True)
             elif self.__in_button_press == Button.SHORT_PRESS:
+                self.__communication_queue.put(EventNotify("OK"))
                 self.__control_camera_stream(True)
                 self.__camera_stream_timer.start(camera_stream_timeout)
 

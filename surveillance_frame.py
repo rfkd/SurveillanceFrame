@@ -23,6 +23,7 @@ from objects.camera_motion import CameraMotion
 from objects.display_power import DisplayPower
 from objects.event_dispatcher import EventDispatcher
 from objects.motion_sensor import MotionSensor
+from objects.notifier import Notifier
 from objects.power_manager import PowerManager, PowerSchedule
 from objects.slideshow import Slideshow
 from objects.threaded_object_supervisor import ThreadedObjectSupervisor
@@ -221,6 +222,11 @@ def main() -> None:
         power_manager = PowerManager(communication_queue, schedules).start()
         communication_objects.append(power_manager)
         threaded_objects.append(power_manager)
+
+        # Notifier
+        notifier = Notifier(communication_queue).start()
+        communication_objects.append(notifier)
+        threaded_objects.append(notifier)
 
         # Event dispatcher
         event_dispatcher = EventDispatcher(communication_queue, communication_objects).start()

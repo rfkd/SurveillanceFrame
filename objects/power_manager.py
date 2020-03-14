@@ -103,8 +103,9 @@ class PowerManager(ThreadedObject):
     __out_display_power = False
     __out_slideshow = False
 
-    # Timer
-    __timer = Timer()
+    # Timers
+    __camera_stream_timer = Timer()
+    __display_power_timer = Timer()
 
     def __init__(self, communication_queue: Queue, schedules: Optional[List[PowerSchedule]] = None):
         """
@@ -142,6 +143,15 @@ class PowerManager(ThreadedObject):
 
         return mode
 
+    def __control_camera_stream(self, enable: bool) -> None:
+        """
+        Control the camera stream.
+        :param enable: True to enable, False to disable.
+        :return: None
+        """
+        self.__communication_queue.put(EventControl(Signal.CAMERA_STREAM_CONTROL, enable))
+        self.__out_camera_stream = enable
+
     def __control_display_power(self, enable: bool) -> None:
         """
         Control the display power.
@@ -160,30 +170,38 @@ class PowerManager(ThreadedObject):
         self.__communication_queue.put(EventControl(Signal.SLIDESHOW_CONTROL, enable))
         self.__out_slideshow = enable
 
-    def __control_camera_stream(self, enable: bool) -> None:
+    def __handle_camera_stream(self, initialize: bool) -> None:
         """
-        Control the camera stream.
-        :param enable: True to enable, False to disable.
+        Handle the camera stream: shown upon camera motion detection or short button press (for 30 seconds).
+        :param initialize: Set True to initialize the camera.
         :return: None
         """
-        self.__communication_queue.put(EventControl(Signal.CAMERA_STREAM_CONTROL, enable))
-        self.__out_camera_stream = enable
+        camera_stream_timeout = 30
 
-    def __worker_always_on(self, initialize: bool) -> None:
+        if initialize:
+            self.__camera_stream_timer.stop()
+
+        if self.__out_camera_stream:
+            if not self.__in_camera_motion and self.__camera_stream_timer.is_expired():
+                self.__control_camera_stream(False)
+        else:
+            if self.__in_camera_motion:
+                self.__control_camera_stream(True)
+            elif self.__in_button_press == Button.SHORT_PRESS:
+                self.__control_camera_stream(True)
+                self.__camera_stream_timer.start(camera_stream_timeout)
+
+    def __handle_display_power_always_on(self, initialize: bool) -> None:
         """
-        Worker function of the "always on" mode:
-         - Display: always powered on (power off with long button press, power back on with any button press)
-         - Slideshow: always shown
-         - Camera stream: shown upon camera motion detection or short button press (for 30 seconds)
-        :param initialize: Set True to initialize the mode.
+        Handle the display power in "always on" mode: always powered on (power off with long button press, power back
+        on with any button press).
+        :param initialize: Set True to initialize the display power.
         :return: None
         """
         if initialize:
-            self.__timer.stop()
+            self.__display_power_timer.stop()
             self.__control_display_power(True)
-            self.__control_slideshow(True)
 
-        # Display power
         if self.__out_display_power:
             if self.__in_button_press == Button.LONG_PRESS:
                 self.__control_display_power(False)
@@ -194,43 +212,49 @@ class PowerManager(ThreadedObject):
                 # Do nothing if the display is off
                 return
 
-        # Camera display
-        if self.__out_camera_stream:
-            if not self.__in_camera_motion and self.__timer.is_expired():
-                self.__control_camera_stream(False)
+    def __handle_display_power_motion_sensor(self, initialize: bool) -> None:
+        """
+        Handle the display power in "motion sensor" mode: powered on by the motion sensor (for 10 minutes) or by the
+        camera stream.
+        :param initialize: Set True to initialize the display power.
+        :return: None
+        """
+        display_power_timeout = 600
+
+        if initialize:
+            self.__display_power_timer.stop()
+            self.__control_display_power(False)
+
+        if self.__out_display_power:
+            if self.__in_sensor_motion:
+                self.__display_power_timer.start(display_power_timeout)
+
+            if not self.__out_camera_stream and self.__display_power_timer.is_expired():
+                self.__control_display_power(False)
         else:
-            if self.__in_camera_motion:
-                self.__control_camera_stream(True)
-            elif self.__in_button_press == Button.SHORT_PRESS:
-                self.__control_camera_stream(True)
-                self.__timer.start(30)
+            if self.__in_sensor_motion:
+                self.__control_display_power(True)
+                self.__display_power_timer.start(display_power_timeout)
+            elif self.__out_camera_stream:
+                self.__control_display_power(True)
 
-        # Reset a pressed button
-        self.__in_button_press = None
-
-    def __worker_motion_sensor(self, initialize: bool) -> None:
+    def __handle_display_power_camera_motion(self, initialize: bool) -> None:
         """
-        Worker function of the "motion sensor" mode:
-         - Display: powered on by the motion sensor (for 10 minutes)
-         - Slideshow: always shown
-         - Camera stream: shown upon camera motion detection or short button press (for 30 seconds)
-        :param initialize: Set True to initialize the mode.
+        Handle the display power in "camera motion" mode: shown upon camera motion detection or short button press (for
+        30 seconds).
+        :param initialize: Set True to initialize the display power.
         :return: None
         """
-        # TODO Implement
-        return
+        if initialize:
+            self.__display_power_timer.stop()
+            self.__control_display_power(False)
 
-    def __worker_camera_motion(self, initialize: bool) -> None:
-        """
-        Worker function of the "camera motion" mode:
-         - Display: powered on by camera motion (powered off when camera motion ends) or any button press
-         - Slideshow: never shown
-         - Camera stream: shown upon camera motion detection
-        :param initialize: Set True to initialize the mode.
-        :return: None
-        """
-        # TODO Implement
-        return
+        if self.__out_display_power:
+            if not self.__out_camera_stream:
+                self.__control_display_power(False)
+        else:
+            if self.__out_camera_stream:
+                self.__control_display_power(True)
 
     def __worker(self) -> None:
         """
@@ -239,27 +263,36 @@ class PowerManager(ThreadedObject):
         """
         LOG.info("Power manager has started.")
 
+        # Start the slideshow
+        self.__control_slideshow(True)
+
         while self.shall_run():
             # Check the current mode based on the schedules
             current_mode = self.__get_current_mode()
-            initialize_worker = False
+            initialize = False
             if current_mode != self.__current_mode:
-                initialize_worker = True
+                initialize = True
                 if self.__current_mode is None:
                     LOG.info("Current mode initialized as %s.", current_mode)
                 else:
                     LOG.info("Current mode changed from %s to %s.", self.__current_mode, current_mode)
                 self.__current_mode = current_mode
 
-            # Power mode
+            # Display power
             if current_mode == PowerManager.Mode.ALWAYS_ON:
-                self.__worker_always_on(initialize_worker)
+                self.__handle_display_power_always_on(initialize)
             elif current_mode == PowerManager.Mode.MOTION_SENSOR:
-                self.__worker_motion_sensor(initialize_worker)
+                self.__handle_display_power_motion_sensor(initialize)
             elif current_mode == PowerManager.Mode.CAMERA_MOTION:
-                self.__worker_camera_motion(initialize_worker)
+                self.__handle_display_power_camera_motion(initialize)
             else:
                 assert False
+
+            # Camera stream
+            self.__handle_camera_stream(initialize)
+
+            # Reset a pressed button
+            self.__in_button_press = None
 
             # Let the CPU take a rest
             time.sleep(0.25)

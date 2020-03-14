@@ -37,12 +37,19 @@ class Timer:
         self.__seconds = 0
         self.__start_time = 0
 
+    def is_active(self) -> bool:
+        """
+        Check if the timer is active (running or already expired).
+        :return: True if the timer is active, False otherwise.
+        """
+        return self.__seconds != 0 and self.__start_time != 0
+
     def is_expired(self) -> bool:
         """
         Check if the timer hasn't started or is expired.
         :return: True if the timer hasn't started or is expired, False otherwise.
         """
-        if self.__start_time == 0 or self.__seconds == 0:
+        if not self.is_active():
             return True
 
         return time.time() > self.__start_time + self.__seconds

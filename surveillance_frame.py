@@ -57,6 +57,7 @@ def parse_arguments() -> argparse.Namespace:
                         help="time in seconds each picture will be shown (default: %(default)s)")
     parser.add_argument("-l", "--listen", metavar="IP:PORT", action="store", default="0.0.0.0:10042",
                         help="address to bind the HTTP motion trigger server to (default: %(default)s)")
+    parser.add_argument("-L", "--log-file", action="store", help="log to the given file")
     parser.add_argument("-m", "--motion-gpio", metavar="GPIO", action="store",
                         help="GPIO BOARD channel number a motion sensor is connected to (active high on motion)")
     parser.add_argument("-p", "--picture-dir", metavar="PATH", action="store",
@@ -87,7 +88,7 @@ def configure_logging(arguments: argparse.Namespace) -> None:
     else:
         log_format = "%(asctime)s [%(levelname)s] %(message)s"
         log_level = logging.INFO
-    logging.basicConfig(format=log_format, level=log_level)
+    logging.basicConfig(format=log_format, level=log_level, filename=arguments.log_file)
 
 
 def get_listen(listen: str) -> Tuple[str, int]:

@@ -8,6 +8,7 @@ import argparse
 import datetime
 import logging
 import re
+import signal
 import sys
 
 from queue import Queue
@@ -168,6 +169,18 @@ def get_schedules(schedules: List[str]) -> Optional[List[PowerSchedule]]:
     return power_schedules
 
 
+def signal_handler(signal_number: int, _) -> None:
+    """
+    Signal handler.
+    :param signal_number: Signal number.
+    :param _: Stack frame.
+    :return: None
+    :raise: OSError with signal string.
+    """
+    # pylint: disable=no-member
+    raise OSError(signal.Signals(signal_number).name)
+
+
 # pylint: disable=too-many-locals
 def main() -> None:
     """
@@ -179,6 +192,7 @@ def main() -> None:
     configure_logging(arguments)
     bind_ip, bind_port = get_listen(arguments.listen)
     schedules = get_schedules(arguments.schedule)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     # GPIO mode
     GPIO.setmode(GPIO.BOARD)
@@ -237,6 +251,8 @@ def main() -> None:
         threaded_object_supervisor.join()
     except KeyboardInterrupt:
         LOG.info("Received keyboard interrupt, shutting down...")
+    except OSError as exception:
+        LOG.info("Received %s, shutting down...", exception)
     finally:
         # Stop all objects
         if threaded_object_supervisor:

@@ -30,10 +30,20 @@ class PowerSchedule:
     """
     Class defining a power management schedule element.
     """
+    # Any weekday (Monday until Friday)
+    WEEKDAY = 10
+
+    # Any day during the weekend (Saturday and Sunday)
+    WEEKEND = 11
+
+    # Any day (Monday until Sunday)
+    ANYDAY = 12
+
     def __init__(self, weekday: int, start: datetime.time, end: datetime.time, mode: str):
         """
         Class constructor.
-        :param weekday: Day of the week - 0: Monday, 1: Tuesday, ..., 6: Sunday.
+        :param weekday: Day of the week (0: Monday, 1: Tuesday, ..., 6: Sunday), WEEKDAY (Monday until Friday),
+                        WEEKEND (Saturday and Sunday) or ANYDAY (Monday until Sunday).
         :param start: Start time (included).
         :param end: End time (included).
         :param mode: Power mode.
@@ -136,9 +146,21 @@ class PowerManager(ThreadedObject):
         if self.__schedules:
             now = datetime.datetime.now()
             for schedule in self.__schedules:
-                assert schedule.weekday() < 7
+                assert schedule.weekday() < 7 or schedule.weekday() == PowerSchedule.WEEKDAY \
+                       or schedule.weekday() == PowerSchedule.WEEKEND
+                if schedule.weekday() == now.weekday():
+                    is_weekday_match = True
+                elif schedule.weekday() == PowerSchedule.ANYDAY:
+                    is_weekday_match = True
+                elif schedule.weekday() == PowerSchedule.WEEKDAY and now.weekday() < 5:
+                    is_weekday_match = True
+                elif schedule.weekday() == PowerSchedule.WEEKEND and now.weekday() > 4:
+                    is_weekday_match = True
+                else:
+                    is_weekday_match = False
+
                 assert schedule.start() < schedule.end()
-                if schedule.weekday() == now.weekday() and schedule.start() <= now.time() <= schedule.end():
+                if is_weekday_match and schedule.start() <= now.time() <= schedule.end():
                     mode = schedule.mode()
                     break
 

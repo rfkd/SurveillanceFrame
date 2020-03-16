@@ -68,12 +68,15 @@ def parse_arguments() -> argparse.Namespace:
                         help="camera stream URL to be shown")
     parser.add_argument("-S", "--schedule", action="store", nargs="+",
                         help="power mode schedule in the format: <weekday>,<start>,<end>,<mode>\n"
-                             " <weekday>: day of the week (Monday, Tuesday, ...)\n"
+                             " <weekday>: day of the week (Monday, Tuesday, ...), 'weekday' (Monday until\n"
+                             "            Friday), 'weekend' (Saturday and Sunday) or 'anyday' (Monday until\n"
+                             "            Sunday)\n"
                              " <start>: start time in the format HH:MM\n"
                              " <end>: end time (included) in the format HH:MM\n"
                              " <mode>: power mode, see above\n"
                              "Example: Tuesday,22:00,23:59,CAMERA_MOTION\n"
-                             "Default mode if no schedule matches: ALWAYS_ON")
+                             "Default mode if no schedule matches is ALWAYS_ON. First matching schedule will\n"
+                             "be used.")
     parser.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
     return parser.parse_args()
 
@@ -130,7 +133,8 @@ def get_schedules(schedules: List[str]) -> Optional[List[PowerSchedule]]:
             sys.exit(-1)
 
         # Weekday
-        weekdays = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3, "friday": 4, "saturday": 5, "sunday": 6}
+        weekdays = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3, "friday": 4, "saturday": 5, "sunday": 6,
+                    "weekday": PowerSchedule.WEEKDAY, "weekend": PowerSchedule.WEEKEND}
         try:
             weekday = weekdays[elements[0].lower()]
         except KeyError:

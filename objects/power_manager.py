@@ -58,7 +58,10 @@ class PowerSchedule:
         String representation of this object.
         :return: String representation.
         """
-        return f"PowerSchedule(weekday={self.__weekday}, start={self.__start}, end={self.__end}, mode={self.__mode})"
+        weekdays = {0: "Monday", 1: "Tuesday", 2: "Wednesday", 3: "Thursday", 4: "Friday", 5: "Saturyday", 6: "Sunday",
+                    self.WEEKDAY: "weekday", self.WEEKEND: "weekend", self.ANYDAY: "Any day"}
+        return f"PowerSchedule(weekday={weekdays[self.__weekday]}, start={self.__start}, end={self.__end}, " \
+               f"mode={self.__mode})"
 
     def weekday(self) -> int:
         """
@@ -146,21 +149,24 @@ class PowerManager(ThreadedObject):
         if self.__schedules:
             now = datetime.datetime.now()
             for schedule in self.__schedules:
+                # Check weekday
                 assert schedule.weekday() < 7 or schedule.weekday() == PowerSchedule.WEEKDAY \
                        or schedule.weekday() == PowerSchedule.WEEKEND
                 if schedule.weekday() == now.weekday():
-                    is_weekday_match = True
+                    pass
                 elif schedule.weekday() == PowerSchedule.ANYDAY:
-                    is_weekday_match = True
+                    pass
                 elif schedule.weekday() == PowerSchedule.WEEKDAY and now.weekday() < 5:
-                    is_weekday_match = True
+                    pass
                 elif schedule.weekday() == PowerSchedule.WEEKEND and now.weekday() > 4:
-                    is_weekday_match = True
+                    pass
                 else:
-                    is_weekday_match = False
+                    continue
 
-                assert schedule.start() < schedule.end()
-                if is_weekday_match and schedule.start() <= now.time() <= schedule.end():
+                # Check time
+                assert schedule.end() == datetime.time(0) or schedule.start() < schedule.end()
+                if (schedule.end() == datetime.time(0) and now.time() >= schedule.start()) \
+                        or (schedule.start() <= now.time() < schedule.end()):
                     mode = schedule.mode()
                     break
 

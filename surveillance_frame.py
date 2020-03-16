@@ -72,9 +72,9 @@ def parse_arguments() -> argparse.Namespace:
                              "            Friday), 'weekend' (Saturday and Sunday) or 'anyday' (Monday until\n"
                              "            Sunday)\n"
                              " <start>: start time in the format HH:MM\n"
-                             " <end>: end time (included) in the format HH:MM\n"
+                             " <end>: end time (not included) in the format HH:MM\n"
                              " <mode>: power mode, see above\n"
-                             "Example: Tuesday,22:00,23:59,CAMERA_MOTION\n"
+                             "Example: Tuesday,22:00,0:00,CAMERA_MOTION\n"
                              "Default mode if no schedule matches is ALWAYS_ON. First matching schedule will\n"
                              "be used.")
     parser.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
@@ -134,7 +134,7 @@ def get_schedules(schedules: List[str]) -> Optional[List[PowerSchedule]]:
 
         # Weekday
         weekdays = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3, "friday": 4, "saturday": 5, "sunday": 6,
-                    "weekday": PowerSchedule.WEEKDAY, "weekend": PowerSchedule.WEEKEND}
+                    "weekday": PowerSchedule.WEEKDAY, "weekend": PowerSchedule.WEEKEND, "anyday": PowerSchedule.ANYDAY}
         try:
             weekday = weekdays[elements[0].lower()]
         except KeyError:
@@ -145,7 +145,7 @@ def get_schedules(schedules: List[str]) -> Optional[List[PowerSchedule]]:
         time_pattern = r"^(\d{1,2}):(\d{2})$"
         result = re.match(time_pattern, elements[1])
         if result:
-            start = datetime.time(int(result.group(1)), int(result.group(2)), 59)
+            start = datetime.time(int(result.group(1)), int(result.group(2)), 0)
         else:
             LOG.critical("Invalid start time '%s' given.", elements[1])
             sys.exit(-1)
@@ -153,7 +153,10 @@ def get_schedules(schedules: List[str]) -> Optional[List[PowerSchedule]]:
         # End time
         result = re.match(time_pattern, elements[2])
         if result:
-            end = datetime.time(int(result.group(1)), int(result.group(2)), 59)
+            end = datetime.time(int(result.group(1)), int(result.group(2)), 0)
+            if end != datetime.time(0) and start >= end:
+                LOG.critical("End time '%s' must be after start time.", elements[2])
+                sys.exit(-1)
         else:
             LOG.critical("Invalid end time '%s' given.", elements[2])
             sys.exit(-1)

@@ -7,10 +7,12 @@
 import argparse
 import datetime
 import logging
+import os
 import re
 import signal
 import sys
 
+from logging.handlers import TimedRotatingFileHandler
 from queue import Queue
 from typing import List, Optional, Tuple
 
@@ -30,7 +32,7 @@ from objects.slideshow import Slideshow
 from objects.threaded_object_supervisor import ThreadedObjectSupervisor
 
 # Define the logger
-LOG = logging.getLogger(__file__.split('.')[0])
+LOG = logging.getLogger(os.path.basename(__file__).split('.')[0])
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -59,7 +61,7 @@ def parse_arguments() -> argparse.Namespace:
                         help="time in seconds each picture will be shown (default: %(default)s)")
     parser.add_argument("-l", "--listen", metavar="IP:PORT", action="store", default="0.0.0.0:10042",
                         help="address to bind the HTTP motion trigger server to (default: %(default)s)")
-    parser.add_argument("-L", "--log-file", action="store", help="log to the given file")
+    parser.add_argument("-L", "--log-file", action="store", help="log to the given file (rotated at midnight)")
     parser.add_argument("-m", "--motion-gpio", metavar="GPIO", action="store",
                         help="GPIO BOARD channel number a motion sensor is connected to (active high on motion)")
     parser.add_argument("-p", "--picture-dir", metavar="PATH", action="store",
@@ -88,12 +90,27 @@ def configure_logging(arguments: argparse.Namespace) -> None:
     :return: None
     """
     if arguments.verbose:
-        log_format = "%(asctime)s [%(levelname)s] <%(name)s> %(message)s"
-        log_level = logging.DEBUG
+        formatter = logging.Formatter("%(asctime)s [%(levelname)s] <%(name)s> %(message)s")
+        level = logging.DEBUG
     else:
-        log_format = "%(asctime)s [%(levelname)s] %(message)s"
-        log_level = logging.INFO
-    logging.basicConfig(format=log_format, level=log_level, filename=arguments.log_file)
+        formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+        level = logging.INFO
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level)
+
+    # Log to console
+    console_log = logging.StreamHandler()
+    console_log.setLevel(level)
+    console_log.setFormatter(formatter)
+    root_logger.addHandler(console_log)
+
+    # Log to file
+    if arguments.log_file:
+        file_log = TimedRotatingFileHandler(arguments.log_file, when="midnight", backupCount=13)
+        file_log.setLevel(level)
+        file_log.setFormatter(formatter)
+        root_logger.addHandler(file_log)
 
 
 def get_listen(listen: str) -> Tuple[str, int]:

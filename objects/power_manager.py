@@ -151,7 +151,7 @@ class PowerManager(ThreadedObject):
             for schedule in self.__schedules:
                 # Check weekday
                 assert schedule.weekday() < 7 or schedule.weekday() == PowerSchedule.WEEKDAY \
-                       or schedule.weekday() == PowerSchedule.WEEKEND
+                       or schedule.weekday() == PowerSchedule.WEEKEND or schedule.weekday() == PowerSchedule.ANYDAY
                 if schedule.weekday() == now.weekday():
                     pass
                 elif schedule.weekday() == PowerSchedule.ANYDAY:

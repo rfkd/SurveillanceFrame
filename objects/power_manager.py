@@ -201,11 +201,11 @@ class PowerManager(ThreadedObject):
 
     def __handle_camera_stream(self, initialize: bool) -> None:
         """
-        Handle the camera stream: shown upon camera motion detection or short button press (for 30 seconds).
+        Handle the camera stream: shown upon camera motion detection or short button press (for 60 seconds).
         :param initialize: Set True to initialize the camera.
         :return: None
         """
-        camera_stream_timeout = 30
+        camera_stream_timeout = 60
 
         if initialize:
             self.__camera_stream_timer.stop()
@@ -244,12 +244,12 @@ class PowerManager(ThreadedObject):
 
     def __handle_display_power_motion_sensor(self, initialize: bool) -> None:
         """
-        Handle the display power in "motion sensor" mode: powered on by the motion sensor (for 10 minutes) or by the
+        Handle the display power in "motion sensor" mode: powered on by the motion sensor (for 60 minutes) or by the
         camera stream.
         :param initialize: Set True to initialize the display power.
         :return: None
         """
-        display_power_timeout = 600
+        display_power_timeout = 3600
 
         if initialize:
             self.__display_power_timer.stop()

@@ -54,7 +54,7 @@ def parse_arguments() -> argparse.Namespace:
                     "                 motion sensor detected motion (timer is restarted upon further\n"
                     "                 motion). It will also be switched on while the camera detects\n"
                     "                 motion. A short button press enables the display and shows the\n"
-                    "                 camera stream for 30 seconds.", formatter_class=argparse.RawTextHelpFormatter)
+                    "                 camera stream for 60 seconds.", formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("-b", "--button-gpio", metavar="GPIO", action="store",
                         help="GPIO BOARD channel number a push button is connected to (active high)")
     parser.add_argument("-i", "--slideshow-interval", metavar="SECONDS", action="store", default=15,

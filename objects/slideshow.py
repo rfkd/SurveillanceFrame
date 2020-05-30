@@ -46,7 +46,7 @@ class Slideshow(PassiveObject):
         :return: None
         """
         slideshow_call = ["feh", "--quiet", "--fullscreen", "--hide-pointer", "--recursive", f"{self.__picture_dir}",
-                          "--slideshow-delay", f"{self.__slideshow_interval}"]
+                          "--slideshow-delay", f"{self.__slideshow_interval}", "--reload", "10"]
         self.__process = subprocess.Popen(slideshow_call, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                           universal_newlines=True)
         LOG.info("Slideshow has started in directory %s with an interval of %d seconds.",

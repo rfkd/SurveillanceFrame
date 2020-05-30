@@ -50,11 +50,12 @@ def parse_arguments() -> argparse.Namespace:
                     "- CAMERA_MOTION: Display is off unless the camera detected motion. A short\n"
                     "                 button press enables the display and shows the camera stream\n"
                     "                 for 30 seconds.\n"
-                    "- MOTION_SENSOR: Display is off but will be switched on for 10 minutes if the\n"
-                    "                 motion sensor detected motion (timer is restarted upon further\n"
-                    "                 motion). It will also be switched on while the camera detects\n"
-                    "                 motion. A short button press enables the display and shows the\n"
-                    "                 camera stream for 60 seconds.", formatter_class=argparse.RawTextHelpFormatter)
+                    "- MOTION_SENSOR: Display is off but will be switched on for 'motion-timeout'\n"
+                    "                 seconds if the motion sensor detected motion (timer is\n"
+                    "                 restarted upon further motion). It will also be switched on while\n"
+                    "                 the camera detects motion. A short button press enables the\n"
+                    "                 display and shows the camera stream for 60 seconds.",
+        formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("-b", "--button-gpio", metavar="GPIO", action="store",
                         help="GPIO BOARD channel number a push button is connected to (active high)")
     parser.add_argument("-i", "--slideshow-interval", metavar="SECONDS", action="store", default=15,
@@ -79,6 +80,9 @@ def parse_arguments() -> argparse.Namespace:
                              "Example: Tuesday,22:00,0:00,CAMERA_MOTION\n"
                              "Default mode if no schedule matches is ALWAYS_ON. First matching schedule will\n"
                              "be used.")
+    parser.add_argument("-t", "--motion-timeout", metavar="SECONDS", action="store", default=3600,
+                        help="timeout for which the display will be switched on when motion has been detected (default:"
+                             " %(default)s)")
     parser.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
     return parser.parse_args()
 
@@ -257,7 +261,7 @@ def main() -> None:
             communication_objects.append(button)
 
         # Power manager
-        power_manager = PowerManager(communication_queue, schedules).start()
+        power_manager = PowerManager(communication_queue, int(arguments.motion_timeout), schedules).start()
         communication_objects.append(power_manager)
         threaded_objects.append(power_manager)
 

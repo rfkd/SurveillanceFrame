@@ -121,13 +121,16 @@ class PowerManager(ThreadedObject):
     __camera_stream_timer = Timer()
     __display_power_timer = Timer()
 
-    def __init__(self, communication_queue: Queue, schedules: Optional[List[PowerSchedule]] = None):
+    def __init__(self, communication_queue: Queue, motion_timeout: int,
+                 schedules: Optional[List[PowerSchedule]] = None):
         """
         Class constructor.
         :param communication_queue: Queue used for event communication.
+        :param motion_timeout: Timeout of the motion detection in seconds.
         :param schedules: List of schedules or None.
         """
         self.__communication_queue = communication_queue
+        self.__motion_timeout = motion_timeout
 
         self.__schedules = schedules
         if schedules:
@@ -244,27 +247,25 @@ class PowerManager(ThreadedObject):
 
     def __handle_display_power_motion_sensor(self, initialize: bool) -> None:
         """
-        Handle the display power in "motion sensor" mode: powered on by the motion sensor (for 60 minutes) or by the
-        camera stream.
+        Handle the display power in "motion sensor" mode: powered on by the motion sensor (for self.__motion_timeout
+        seconds) or by the camera stream.
         :param initialize: Set True to initialize the display power.
         :return: None
         """
-        display_power_timeout = 3600
-
         if initialize:
             self.__display_power_timer.stop()
             self.__control_display_power(False)
 
         if self.__out_display_power:
             if self.__in_sensor_motion:
-                self.__display_power_timer.start(display_power_timeout)
+                self.__display_power_timer.start(self.__motion_timeout)
 
             if not self.__out_camera_stream and self.__display_power_timer.is_expired():
                 self.__control_display_power(False)
         else:
             if self.__in_sensor_motion:
                 self.__control_display_power(True)
-                self.__display_power_timer.start(display_power_timeout)
+                self.__display_power_timer.start(self.__motion_timeout)
             elif self.__out_camera_stream:
                 self.__control_display_power(True)
 
